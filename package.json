@@ -14,11 +14,9 @@
     "ECDH"
   ],
   "dependencies": {
-    "elliptic": "^6.5.7"
-  },
-  "devDependencies": {
     "bip32": "^5.0.0-rc.0",
     "bip39": "^3.1.0",
+    "elliptic": "^6.5.7",
     "tiny-secp256k1": "^2.2.3"
   }
 }
