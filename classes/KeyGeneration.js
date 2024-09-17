@@ -72,7 +72,7 @@ class SilentPaymentAddress {
     return this.toString();
   }
 
-  static toString() {
+  toString() {
     const encodedResult = encodeBech32(this.hrp, [
       this.version,
       ...convertToBase32([
