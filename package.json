@@ -1,6 +1,6 @@
 {
   "name": "@shakesco/silent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bitcoin Silent Payments",
   "main": "index.js",
   "author": "Shawn Kimtai",
