@@ -1,0 +1,2 @@
+const TAPROOT_WITNESS_VERSION = 0x01;
+module.exports = { TAPROOT_WITNESS_VERSION };

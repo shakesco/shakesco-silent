@@ -1,0 +1,24 @@
+{
+  "name": "@shakesco/silent",
+  "version": "1.0.0",
+  "description": "Bitcoin Silent Payments",
+  "main": "index.js",
+  "author": "Shawn Kimtai",
+  "license": "MIT",
+  "keywords": [
+    "shakesco",
+    "shakespay",
+    "private",
+    "bitcoin",
+    "silent payments",
+    "ECDH"
+  ],
+  "dependencies": {
+    "elliptic": "^6.5.7"
+  },
+  "devDependencies": {
+    "bip32": "^5.0.0-rc.0",
+    "bip39": "^3.1.0",
+    "tiny-secp256k1": "^2.2.3"
+  }
+}
