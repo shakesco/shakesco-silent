@@ -1,5 +1,7 @@
 # @shakesco/silent
 
+_special credit to [Ruben Somsen](https://x.com/SomsenRuben) and [Josi Bake](https://x.com/josibake)_
+
 ## Install
 
 To get started, install the package with your package manager.
