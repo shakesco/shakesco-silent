@@ -10,6 +10,7 @@ const {
   decodeBech32,
 } = require("../utils/bech32");
 const Network = require("../utils/network");
+const { generateLabel, tweakAdd } = require("../utils/label");
 const bip32 = BIP32Factory(tinysecp);
 
 const SCAN_PATH = "m/352'/1'/0'/1'/0";
@@ -189,6 +190,24 @@ class KeyGeneration extends SilentPaymentAddress {
         version: version,
       }
     );
+  }
+
+  toLabeledSilentPaymentAddress(m) {
+    const label = generateLabel(m, this.b_scan);
+
+    const B_m = tweakAdd(
+      this.B_spend,
+      BigInt("0x" + Buffer.from(label).toString("hex"))
+    );
+
+    return new KeyGeneration({
+      b_scan: this.b_scan,
+      b_spend: this.b_spend,
+      B_scan: this.B_scan,
+      B_spend: B_m,
+      network: this.network,
+      version: this.version,
+    });
   }
 }
 

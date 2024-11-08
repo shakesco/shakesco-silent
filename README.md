@@ -70,6 +70,24 @@ function main() {
 }
 ```
 
+#### Create a change address
+
+Create a change silent payment address that won't break privacy. Consider a scenario where you have sent 10 silent payments to friends and have sent the change to your public address. In this case, you would have compromised not only your private transactions but also those of your friends. So, let's create a change address:
+
+```js {filename="index.js"}
+function main() {
+    const b_scan = "";
+    const b_spend = "";
+    const keys = KeyGeneration.fromPrivateKeys({
+    b_scan: b_scan,
+    b_spend: b_spend,
+    network: "testnet",
+    });
+    const changeSilentPaymentAddress = keys.toLabeledSilentPaymentAddress(0); //should always be zero!(https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki#labels_for_change)
+    console.log(changeSilentPaymentAddress.toAddress()); // change silent payment address
+}
+```
+
 ### Create a taproot address destination
 
 Here is where you create a destination address for the user to send to a newly generated Taproot address, derived from the receiver's silent payment address generated above.
