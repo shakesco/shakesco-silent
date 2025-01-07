@@ -214,7 +214,4 @@ Thats it! 🎊🎊🎊
 
 ### Contribute
 
-If you love what we do to progress privacy, [contribute](https://me-qr.com/text/vPod5qN0 "btc_addr") to further development
-
-<img src="./images/bitcoin.png" alt="btc_addr" style="display: inline-block; margin-right: 100px; margin-left: 70px;" width="200">
-<img src="./images/silent.png" alt="silent_addr" width="200" style="display: inline-block; margin-right: 10px;">
+If you love what we do to progress privacy, [contribute](https://donate.shakesco.com/@shakesco.sns "shakesco_donate") to further development
