@@ -19,10 +19,10 @@ const {
   SilentPaymentDestination,
   SilentPaymentBuilder,
   ECPrivateInfo,
-  Network,
+  Network: SilentNetwork,
   BitcoinScriptOutput,
   bip32,
-  bip39
+  bip39,
 } = shakesco;
 ```
 
@@ -35,19 +35,19 @@ You can generate a silent payment address in three ways:
 
 If you are not a wallet provider, use this method. More specifically, you can make the user sign a message and then derive `b_scan` and `b_spend` from the resulting [signature](https://cryptobook.nakov.com/digital-signatures/ecdsa-sign-verify-messages#ecdsa-sign) (Use `r` as `b_scan` and `s` as `b_spend` or vice versa).
 
->⚠️ If you are not using this method, ensure that a cryptographically secure random number generator is being used.
+> ⚠️ If you are not using this method, ensure that a cryptographically secure random number generator is being used.
 
 ```js {filename="index.js"}
 function main() {
-    const b_scan = "";
-    const b_spend = "";
-    const keys = KeyGeneration.fromPrivateKeys({
+  const b_scan = "";
+  const b_spend = "";
+  const keys = KeyGeneration.fromPrivateKeys({
     b_scan: b_scan,
     b_spend: b_spend,
-    network: "testnet",
-    });
-    const silentPaymentAddress = keys.toAddress();
-    console.log(silentPaymentAddress); // Silent payment address
+    network: SilentNetwork.Testnet,
+  });
+  const silentPaymentAddress = keys.toAddress();
+  console.log(silentPaymentAddress); // Silent payment address
 }
 ```
 
@@ -62,11 +62,11 @@ function main() {
   const silentPaymentAddress = keys.toAddress();
   console.log(silentPaymentAddress);
 
-// const seed = bip39.mnemonicToSeedSync(mnemonic);
-// const node = bip32.fromSeed(seed);
-// const keys = KeyGeneration.fromHd(node);
-// const silentPaymentAddress = keys.toAddress();
-// console.log(silentPaymentAddress);
+  // const seed = bip39.mnemonicToSeedSync(mnemonic);
+  // const node = bip32.fromSeed(seed);
+  // const keys = KeyGeneration.fromHd(node);
+  // const silentPaymentAddress = keys.toAddress();
+  // console.log(silentPaymentAddress);
 }
 ```
 
@@ -76,15 +76,15 @@ Create a change silent payment address that won't break privacy. Consider a scen
 
 ```js {filename="index.js"}
 function main() {
-    const b_scan = "";
-    const b_spend = "";
-    const keys = KeyGeneration.fromPrivateKeys({
+  const b_scan = "";
+  const b_spend = "";
+  const keys = KeyGeneration.fromPrivateKeys({
     b_scan: b_scan,
     b_spend: b_spend,
-    network: "testnet",
-    });
-    const changeSilentPaymentAddress = keys.toLabeledSilentPaymentAddress(0); //should always be zero!(https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki#labels_for_change)
-    console.log(changeSilentPaymentAddress.toAddress()); // change silent payment address
+    network: SilentNetwork.Testnet,
+  });
+  const changeSilentPaymentAddress = keys.toLabeledSilentPaymentAddress(0); //should always be zero!(https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki#labels_for_change)
+  console.log(changeSilentPaymentAddress.toAddress()); // change silent payment address
 }
 ```
 
@@ -100,39 +100,39 @@ You will need:
 
 ```js {filename="index.js"}
 function main() {
-    const addressPubKeys = KeyGeneration.fromAddress(silentPaymentAddress);
-    const vinOutpoints = [
+  const addressPubKeys = KeyGeneration.fromAddress(silentPaymentAddress);
+  const vinOutpoints = [
     {
-        txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-        index: 1,
+      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+      index: 1,
     },
-    ];
+  ];
 
-    const pubkeys = [
+  const pubkeys = [
     "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-    ];
-    const UTXOPrivatekey = "";
-    const builder = new SilentPaymentBuilder({
+  ];
+  const UTXOPrivatekey = "";
+  const builder = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
     pubkeys: pubkeys,
-    }).createOutputs(
+  }).createOutputs(
     [
-        new ECPrivateInfo(
+      new ECPrivateInfo(
         UTXOPrivatekey,
         false // If the output is from a taproot address
-        ),
+      ),
     ],
     [
-        new SilentPaymentDestination({
+      new SilentPaymentDestination({
         amount: 1000,
-        network: Network.Testnet,
+        network: SilentNetwork.Testnet,
         version: 0,
         scanPubkey: addressPubKeys.B_scan,
         spendPubkey: addressPubKeys.B_spend,
-        }),
+      }),
     ]
-    );
-    console.log(builder[silentPaymentAddress][0]); // Access the taproot address and send 1000 satoshis
+  );
+  console.log(builder[silentPaymentAddress][0]); // Access the taproot address and send 1000 satoshis
 }
 ```
 
@@ -148,30 +148,30 @@ For more info, go [here](https://github.com/bitcoin/bips/blob/master/bip-0352.me
 
 ```js {filename="index.js"}
 function main() {
-    const vinOutpoints = [
+  const vinOutpoints = [
     {
-        txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-        index: 1,
+      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+      index: 1,
     },
-    ];
+  ];
 
-    const pubkeys = [
+  const pubkeys = [
     "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-    ];
-    const search = new SilentPaymentBuilder({
+  ];
+  const search = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
     pubkeys: pubkeys,
-    network: Network.Testnet,
-    }).scanOutputs(keys.b_scan, keys.B_spend, [
+    network: SilentNetwork.Testnet,
+  }).scanOutputs(keys.b_scan, keys.B_spend, [
     new BitcoinScriptOutput(
-        "5120fdcb28bcea339a5d36d0c00a3e110b837bf1151be9e7ac9a8544e18b2f63307d",
-        BigInt(1000)
+      "5120fdcb28bcea339a5d36d0c00a3e110b837bf1151be9e7ac9a8544e18b2f63307d",
+      BigInt(1000)
     ),
-    ]);
+  ]);
 
-    console.log(
+  console.log(
     search[builder[keys.toAddress()][0].address.pubkey.toString("hex")].output
-    );
+  );
 }
 ```
 
@@ -189,22 +189,22 @@ First, you will need:
 
 ```js {filename="index.js"}
 function main() {
-     const vinOutpoints = [
-        {
-            txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-            index: 1,
-        },
-    ];
+  const vinOutpoints = [
+    {
+      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+      index: 1,
+    },
+  ];
 
-    const pubkeys = [
+  const pubkeys = [
     "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-    ];
-    const private_key = new SilentPaymentBuilder({
+  ];
+  const private_key = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
     pubkeys: pubkeys,
-    }).spendOutputs(keys.b_scan, keys.b_spend);
+  }).spendOutputs(keys.b_scan, keys.b_spend);
 
-    console.log(private_key); // use this to build a taproot transaction with bitcoinjs: https://github.com/bitcoinjs/bitcoinjs-lib
+  console.log(private_key); // use this to build a taproot transaction with bitcoinjs: https://github.com/bitcoinjs/bitcoinjs-lib
 }
 ```
 

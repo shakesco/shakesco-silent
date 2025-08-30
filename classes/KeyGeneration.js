@@ -13,9 +13,11 @@ const Network = require("../utils/network");
 const { generateLabel, tweakAdd } = require("../utils/label");
 const bip32 = BIP32Factory(tinysecp);
 
-const SCAN_PATH = "m/352'/1'/0'/1'/0";
+const MAINNET_SCAN_PATH = "m/352'/0'/0'/1'/0";
+const MAINNET_SPEND_PATH = "m/352'/0'/0'/0'/0";
 
-const SPEND_PATH = "m/352'/1'/0'/0'/0";
+const TESTNET_SCAN_PATH = "m/352'/1'/0'/1'/0";
+const TESTNET_SPEND_PATH = "m/352'/1'/0'/0'/0";
 
 class SilentPaymentAddress {
   static get regex() {
@@ -163,6 +165,10 @@ class KeyGeneration extends SilentPaymentAddress {
    */
 
   static fromHd(bip32, { hrp = "sp", version = 0 } = {}) {
+    const SCAN_PATH = hrp == "sp" ? MAINNET_SCAN_PATH : TESTNET_SCAN_PATH;
+
+    const SPEND_PATH = hrp == "sp" ? MAINNET_SPEND_PATH : TESTNET_SPEND_PATH;
+
     const scanDerivation = bip32.derivePath(SCAN_PATH);
     const spendDerivation = bip32.derivePath(SPEND_PATH);
     return new KeyGeneration({
@@ -170,7 +176,7 @@ class KeyGeneration extends SilentPaymentAddress {
       b_spend: ec.keyFromPrivate(spendDerivation.privateKey).getPrivate(),
       B_scan: ec.keyFromPrivate(scanDerivation.privateKey).getPublic(),
       B_spend: ec.keyFromPrivate(spendDerivation.privateKey).getPublic(),
-      network: hrp == "tsp" ? Network.Testnet : Network.Mainnet,
+      network: hrp == "sp" ? Network.Mainnet : Network.Testnet,
       version: version,
     });
   }
@@ -182,9 +188,12 @@ class KeyGeneration extends SilentPaymentAddress {
    * @returns
    */
 
-  static fromMnemonic(mnemonic, { hrp = "sp", version = 0 } = {}) {
+  static fromMnemonic(
+    mnemonic,
+    { password = "", hrp = "sp", version = 0 } = {}
+  ) {
     return KeyGeneration.fromHd(
-      bip32.fromSeed(bip39.mnemonicToSeedSync(mnemonic)),
+      bip32.fromSeed(bip39.mnemonicToSeedSync(mnemonic, password)),
       {
         hrp: hrp,
         version: version,
