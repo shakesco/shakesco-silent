@@ -300,27 +300,37 @@ class SilentPaymentBuilder {
    */
 
   spendOutputs(b_scan, b_spend) {
-    const tweakDataForRecipient = this.receiverTweak
-      ? ec.keyFromPublic(this.receiverTweak).getPublic()
-      : tweakMulPublic(
-          ec.keyFromPublic(Buffer.from(this.A_sum, "hex")).getPublic(),
-          this.inputHash
-        );
-    const ecdhSharedSecret = tweakMulPublic(tweakDataForRecipient, b_scan);
+    let tweakScalar;
 
-    var k = 0;
+    if (this.receiverTweak) {
+      // The tweak is already the t_k scalar value, use it directly as BigInt
+      tweakScalar = new BN(Buffer.from(this.receiverTweak, "hex"));
+    } else {
+      // Calculate the tweak from inputs
+      const tweakDataForRecipient = tweakMulPublic(
+        ec.keyFromPublic(Buffer.from(this.A_sum, "hex")).getPublic(),
+        this.inputHash
+      );
 
-    const t_k = taggedHash(
-      Buffer.concat([
-        Buffer.from(ecdhSharedSecret.encodeCompressed(), "array"),
-        Buffer.from(toBytes(BigInt(k), 4), "array"),
-      ]),
-      "BIP0352/SharedSecret"
-    );
+      const ecdhSharedSecret = tweakMulPublic(tweakDataForRecipient, b_scan);
 
+      var k = 0;
+
+      const t_k = taggedHash(
+        Buffer.concat([
+          Buffer.from(ecdhSharedSecret.encodeCompressed(), "array"),
+          Buffer.from(toBytes(BigInt(k), 4), "array"),
+        ]),
+        "BIP0352/SharedSecret"
+      );
+
+      tweakScalar = new BN(t_k);
+    }
+
+    // Apply the tweak to get the private key
     const p_k = tweakAddPrivate(
       ec.keyFromPrivate(b_spend.toString("hex")),
-      new BN(t_k)
+      tweakScalar
     );
 
     return p_k.getPrivate().toString("hex");

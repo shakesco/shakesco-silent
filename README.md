@@ -108,13 +108,10 @@ function main() {
     },
   ];
 
-  const pubkeys = [
-    "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-  ];
-  const UTXOPrivatekey = "";
+  const UTXOPrivatekey = ""; // sender private key
+
   const builder = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
-    pubkeys: pubkeys,
   }).createOutputs(
     [
       new ECPrivateInfo(
@@ -158,6 +155,7 @@ function main() {
   const pubkeys = [
     "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
   ];
+
   const search = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
     pubkeys: pubkeys,
@@ -169,9 +167,7 @@ function main() {
     ),
   ]);
 
-  console.log(
-    search[builder[keys.toAddress()][0].address.pubkey.toString("hex")].output
-  );
+  console.log(search);
 }
 ```
 
@@ -199,6 +195,7 @@ function main() {
   const pubkeys = [
     "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
   ];
+
   const private_key = new SilentPaymentBuilder({
     vinOutpoints: vinOutpoints,
     pubkeys: pubkeys,
