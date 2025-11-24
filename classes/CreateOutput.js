@@ -200,7 +200,7 @@ class SilentPaymentBuilder {
     const matches = {};
     var k = 0;
 
-    do {
+    while (outputsToCheck.length > 0) {
       const t_k = taggedHash(
         Buffer.concat([
           Buffer.from(ecdhSharedSecret.encodeCompressed(), "array"),
@@ -210,9 +210,11 @@ class SilentPaymentBuilder {
       );
 
       const P_k = tweakAddPublic(B_spend, t_k);
-      const length = outputsToCheck.length;
 
-      for (var i = 0; i < length; i++) {
+      let i = 0;
+      let foundMatch = false;
+
+      while (i < outputsToCheck.length) {
         const output = outputsToCheck[i].script.slice(4);
         const outputPubkey = output.toString("hex");
         const outputAmount = Number(outputsToCheck[i].value);
@@ -235,6 +237,7 @@ class SilentPaymentBuilder {
 
           outputsToCheck.splice(i, 1);
           k++;
+          foundMatch = true;
           break;
         }
 
@@ -280,17 +283,19 @@ class SilentPaymentBuilder {
 
             outputsToCheck.splice(i, 1);
             k++;
+            foundMatch = true;
             break;
           }
         }
 
-        outputsToCheck.splice(i, 1);
-
-        if (i + 1 >= outputsToCheck.length) {
-          break;
-        }
+        i++;
       }
-    } while (outputsToCheck.length > 0);
+
+      // If we went through all outputs without finding a match, we're done
+      if (!foundMatch) {
+        break;
+      }
+    }
 
     return matches;
   }
