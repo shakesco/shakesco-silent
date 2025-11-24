@@ -238,7 +238,10 @@ class SilentPaymentBuilder {
           break;
         }
 
-        if (precomputedLabels != null && precomputedLabels.isNotEmpty) {
+        if (
+          precomputedLabels != null &&
+          Object.keys(precomputedLabels).length > 0
+        ) {
           var m_G_sub = tweakAddPublic(
             ec.keyFromPublic(Buffer.from(output, "hex")).getPublic(),
             pubNegate(P_k)
@@ -287,7 +290,7 @@ class SilentPaymentBuilder {
           break;
         }
       }
-    } while (outputsToCheck.isNotEmpty);
+    } while (outputsToCheck.length > 0);
 
     return matches;
   }
