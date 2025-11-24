@@ -107,7 +107,7 @@ class SilentPaymentBuilder {
     for (const silentPaymentDestination of silentPaymentDestinations) {
       const B_scan = silentPaymentDestination.B_scan;
       network = silentPaymentDestination.network;
-      const scanPubkey = B_scan;
+      const scanPubkey = B_scan.encodeCompressed("hex");
 
       if (silentPaymentGroups[scanPubkey]) {
         const group = silentPaymentGroups[scanPubkey];
