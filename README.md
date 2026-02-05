@@ -208,7 +208,3 @@ function main() {
 The receiver can use `private_key` to spend the funds!
 
 Thats it! 🎊🎊🎊
-
-### Contribute
-
-If you love what we do to progress privacy, [contribute](https://donate.shakesco.com/@shakesco.sns "shakesco_donate") to further development
