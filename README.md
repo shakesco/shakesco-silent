@@ -1,210 +1,161 @@
 # @shakesco/silent
 
-_special credit to [Ruben Somsen](https://x.com/SomsenRuben) and [Josi Bake](https://x.com/josibake)_
+_Special credit to [Ruben Somsen](https://x.com/SomsenRuben) and [Josie Bake](https://x.com/josibake)_
+
+JavaScript SDK for Bitcoin silent payments (BIP-352). Share a single reusable address for receiving Bitcoin privately.
+
+**📚 Full documentation:** [docs.shakesco.com/silent-payments](https://docs.shakesco.com/silent-payments/)
 
 ## Install
 
-To get started, install the package with your package manager.
-
-```shell {filename=cmd}
+```bash
 npm i @shakesco/silent
 ```
 
-After installing:
+`
 
-```js {filename="index.js"}
+## Usage
+
+```javascript
 const shakesco = require("@shakesco/silent");
 const {
   KeyGeneration,
   SilentPaymentDestination,
   SilentPaymentBuilder,
   ECPrivateInfo,
-  Network: SilentNetwork,
+  Network,
   BitcoinScriptOutput,
   bip32,
   bip39,
 } = shakesco;
 ```
 
-### Generate Silent Payment address
+## Quick Start
 
-This will generate the silent payment address. It prepares a receiver to receive silent payments.
-You can generate a silent payment address in three ways:
+### 1. Generate Silent Payment Address
 
-##### Private Keys
+**From Private Keys (Recommended):**
 
-If you are not a wallet provider, use this method. More specifically, you can make the user sign a message and then derive `b_scan` and `b_spend` from the resulting [signature](https://cryptobook.nakov.com/digital-signatures/ecdsa-sign-verify-messages#ecdsa-sign) (Use `r` as `b_scan` and `s` as `b_spend` or vice versa).
+```javascript
+const b_scan = "";
+const b_spend = "";
+const keys = KeyGeneration.fromPrivateKeys({
+  b_scan: b_scan,
+  b_spend: b_spend,
+  network: "testnet",
+});
 
-> ⚠️ If you are not using this method, ensure that a cryptographically secure random number generator is being used.
-
-```js {filename="index.js"}
-function main() {
-  const b_scan = "";
-  const b_spend = "";
-  const keys = KeyGeneration.fromPrivateKeys({
-    b_scan: b_scan,
-    b_spend: b_spend,
-    network: SilentNetwork.Testnet,
-  });
-  const silentPaymentAddress = keys.toAddress();
-  console.log(silentPaymentAddress); // Silent payment address
-}
+const silentPaymentAddress = keys.toAddress();
+console.log(silentPaymentAddress);
 ```
 
-##### Mnemonic and HD Key
+> 💡 **Tip:** Derive `b_scan` and `b_spend` from user's [ECDSA signature](https://cryptobook.nakov.com/digital-signatures/ecdsa-sign-verify-messages#ecdsa-sign) (use `r` and `s` values).
 
-If you are a wallet provider, use this method.
+**From Mnemonic:**
 
-```js {filename="index.js"}
-function main() {
-  const mnemonic = ""; // 12, 15, 24 word phrase
-  const keys = KeyGeneration.fromMnemonic(mnemonic);
-  const silentPaymentAddress = keys.toAddress();
-  console.log(silentPaymentAddress);
-
-  // const seed = bip39.mnemonicToSeedSync(mnemonic);
-  // const node = bip32.fromSeed(seed);
-  // const keys = KeyGeneration.fromHd(node);
-  // const silentPaymentAddress = keys.toAddress();
-  // console.log(silentPaymentAddress);
-}
+```javascript
+const mnemonic = ""; // 12, 15, or 24 words
+const keys = KeyGeneration.fromMnemonic(mnemonic);
+const silentPaymentAddress = keys.toAddress();
 ```
 
-#### Create a change address
+**Create Change Address:**
 
-Create a change silent payment address that won't break privacy. Consider a scenario where you have sent 10 silent payments to friends and have sent the change to your public address. In this case, you would have compromised not only your private transactions but also those of your friends. So, let's create a change address:
-
-```js {filename="index.js"}
-function main() {
-  const b_scan = "";
-  const b_spend = "";
-  const keys = KeyGeneration.fromPrivateKeys({
-    b_scan: b_scan,
-    b_spend: b_spend,
-    network: SilentNetwork.Testnet,
-  });
-  const changeSilentPaymentAddress = keys.toLabeledSilentPaymentAddress(0); //should always be zero!(https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki#labels_for_change)
-  console.log(changeSilentPaymentAddress.toAddress()); // change silent payment address
-}
+```javascript
+const changeSilentPaymentAddress = keys.toLabeledSilentPaymentAddress(0);
+console.log(changeSilentPaymentAddress.toAddress());
 ```
 
-### Create a taproot address destination
+### 2. Create Destination Address
 
-Here is where you create a destination address for the user to send to a newly generated Taproot address, derived from the receiver's silent payment address generated above.
-You will need:
+```javascript
+const addressPubKeys = KeyGeneration.fromAddress(silentPaymentAddress);
 
-1. The Unspent Transaction Output(UTXO) of the user, hash and output_index.
-2. The private key of the UTXO in 1 above.
-3. Amount the user wants to send. Should be in satoshis(1 BTC = 100<sup>6</sup> satoshis)
-4. Finally, the public keys of the 2 secret shares, `B_scan` and `B_spend`
+const vinOutpoints = [
+  {
+    txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+    index: 1,
+  },
+];
 
-```js {filename="index.js"}
-function main() {
-  const addressPubKeys = KeyGeneration.fromAddress(silentPaymentAddress);
-  const vinOutpoints = [
-    {
-      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-      index: 1,
-    },
-  ];
+const pubkeys = [
+  "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
+];
+const UTXOPrivatekey = "";
 
-  const UTXOPrivatekey = ""; // sender private key
+const builder = new SilentPaymentBuilder({
+  vinOutpoints: vinOutpoints,
+  pubkeys: pubkeys,
+}).createOutputs(
+  [new ECPrivateInfo(UTXOPrivatekey, false)],
+  [
+    new SilentPaymentDestination({
+      amount: 1000,
+      network: Network.Testnet,
+      version: 0,
+      scanPubkey: addressPubKeys.B_scan,
+      spendPubkey: addressPubKeys.B_spend,
+    }),
+  ]
+);
 
-  const builder = new SilentPaymentBuilder({
-    vinOutpoints: vinOutpoints,
-  }).createOutputs(
-    [
-      new ECPrivateInfo(
-        UTXOPrivatekey,
-        false // If the output is from a taproot address
-      ),
-    ],
-    [
-      new SilentPaymentDestination({
-        amount: 1000,
-        network: SilentNetwork.Testnet,
-        version: 0,
-        scanPubkey: addressPubKeys.B_scan,
-        spendPubkey: addressPubKeys.B_spend,
-      }),
-    ]
-  );
-  console.log(builder[silentPaymentAddress][0]); // Access the taproot address and send 1000 satoshis
-}
+console.log(builder[silentPaymentAddress][0]); // Send sats here
 ```
 
-### Scan for funds
+### 3. Scan for Incoming Funds
 
-Scanning for funds is a drawback of silent payments. So below is how you can check if a certain transaction belongs to a user. You will need:
+```javascript
+const vinOutpoints = [
+  {
+    txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+    index: 1,
+  },
+];
 
-1. The transaction input's tx_hash and output_index.
-2. Public key outputted.
-3. Script and amount from the outputted taproot address
+const pubkeys = [
+  "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
+];
 
-For more info, go [here](https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki#scanning-silent-payment-eligible-transactions)
+const search = new SilentPaymentBuilder({
+  vinOutpoints: vinOutpoints,
+  pubkeys: pubkeys,
+  network: Network.Testnet,
+}).scanOutputs(keys.b_scan, keys.B_spend, [
+  new BitcoinScriptOutput(
+    "5120fdcb28bcea339a5d36d0c00a3e110b837bf1151be9e7ac9a8544e18b2f63307d",
+    BigInt(1000)
+  ),
+]);
 
-```js {filename="index.js"}
-function main() {
-  const vinOutpoints = [
-    {
-      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-      index: 1,
-    },
-  ];
-
-  const pubkeys = [
-    "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-  ];
-
-  const search = new SilentPaymentBuilder({
-    vinOutpoints: vinOutpoints,
-    pubkeys: pubkeys,
-    network: SilentNetwork.Testnet,
-  }).scanOutputs(keys.b_scan, keys.B_spend, [
-    new BitcoinScriptOutput(
-      "5120fdcb28bcea339a5d36d0c00a3e110b837bf1151be9e7ac9a8544e18b2f63307d",
-      BigInt(1000)
-    ),
-  ]);
-
-  console.log(search);
-}
+console.log(search); // Check if payment is yours
 ```
 
-If the address above matches the taproot address from the output in the transaction, it belongs to the user.
+### 4. Spend the Funds
 
-### Spend funds
+```javascript
+const vinOutpoints = [
+  {
+    txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
+    index: 1,
+  },
+];
 
-If the funds belong to the user, they can spend like so:
+const pubkeys = [
+  "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
+];
 
-First, you will need:
+const private_key = new SilentPaymentBuilder({
+  vinOutpoints: vinOutpoints,
+  pubkeys: pubkeys,
+}).spendOutputs(keys.b_scan, keys.b_spend);
 
-1. The transaction input's tx_hash and output_index.
-2. Public key outputted.
-3. Receiver's spend and scan private keys.
-
-```js {filename="index.js"}
-function main() {
-  const vinOutpoints = [
-    {
-      txid: "367e24cac43a7d77621ceb1cbc1cf4a7719fc81b05b07b38f99b043f4e8b95dc",
-      index: 1,
-    },
-  ];
-
-  const pubkeys = [
-    "025c471f0e7d30d6f9095058bbaedaf13e1de67dbfcbe8328e6378d2a3bfb5cfd0",
-  ];
-
-  const private_key = new SilentPaymentBuilder({
-    vinOutpoints: vinOutpoints,
-    pubkeys: pubkeys,
-  }).spendOutputs(keys.b_scan, keys.b_spend);
-
-  console.log(private_key); // use this to build a taproot transaction with bitcoinjs: https://github.com/bitcoinjs/bitcoinjs-lib
-}
+console.log(private_key); // Use with bitcoinjs-lib
 ```
 
-The receiver can use `private_key` to spend the funds!
+That's it! Use the private key with [bitcoinjs-lib](https://github.com/bitcoinjs/bitcoinjs-lib) to build your transaction.
 
-Thats it! 🎊🎊🎊
+## Resources
+
+- [BIP-352 Specification](https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki)
+- [Silent Payments Explained](https://silentpayments.xyz/docs/explained/)
+- [bitcoinjs-lib](https://github.com/bitcoinjs/bitcoinjs-lib)
